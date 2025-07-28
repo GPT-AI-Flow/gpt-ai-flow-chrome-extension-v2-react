@@ -9,6 +9,8 @@ import textSummaryPlugin from "./text-summary.plugin";
 class ContentScriptManager {
   private pluginManager: PluginManager;
   private isInitialized = false;
+  private currentModal: HTMLElement | null = null;
+  private currentOverlay: HTMLElement | null = null;
 
   constructor() {
     this.pluginManager = new PluginManager();
@@ -146,7 +148,15 @@ class ContentScriptManager {
       // 显示加载状态
       this.showNotification("🤖 正在生成总结...", "info");
 
-      // 创建执行上下文
+      // 获取当前配置
+      const configResult = await chrome.storage.sync.get({
+        apiUrl: "https://api.openai.com/v1/chat/completions",
+        apiKey: "",
+        maxLength: 200,
+        language: "zh-CN",
+      });
+
+      // 创建执行上下文，包含完整的配置信息
       const context = {
         siteConfig: {
           id: "current-site",
@@ -166,7 +176,13 @@ class ContentScriptManager {
             },
           ],
         },
-        settings: { selectedText },
+        settings: { 
+          selectedText,
+          apiUrl: configResult.apiUrl,
+          apiKey: configResult.apiKey,
+          maxLength: configResult.maxLength,
+          language: configResult.language,
+        },
         document: document,
         storage: chrome.storage,
         url: window.location.href,
@@ -245,11 +261,34 @@ class ContentScriptManager {
   }
 
   /**
+   * 关闭现有的modal
+   */
+  private closeExistingModal(): void {
+    // 移除现有的modal和overlay
+    const existingOverlay = document.getElementById("summary-modal-overlay");
+    const existingModal = document.getElementById("summary-modal");
+    
+    if (existingOverlay) {
+      existingOverlay.remove();
+    }
+    if (existingModal) {
+      existingModal.remove();
+    }
+    
+    this.currentModal = null;
+    this.currentOverlay = null;
+  }
+
+  /**
    * 显示总结结果
    */
   private showSummaryResult(originalText: string, summary: string): void {
+    // 先清除可能存在的旧modal
+    this.closeExistingModal();
+
     // 创建背景遮罩
     const overlay = document.createElement("div");
+    overlay.id = "summary-modal-overlay";
     overlay.style.cssText = `
       position: fixed;
       top: 0;
@@ -263,6 +302,7 @@ class ContentScriptManager {
 
     // 创建结果弹窗
     const modal = document.createElement("div");
+    modal.id = "summary-modal";
     modal.style.cssText = `
       position: fixed;
       top: 50%;
@@ -279,21 +319,24 @@ class ContentScriptManager {
       animation: modalSlideIn 0.3s ease-out;
     `;
 
-    // 添加动画样式
-    const style = document.createElement("style");
-    style.textContent = `
-      @keyframes modalSlideIn {
-        from {
-          opacity: 0;
-          transform: translate(-50%, -60%);
+    // 添加动画样式（只添加一次）
+    if (!document.getElementById("summary-modal-styles")) {
+      const style = document.createElement("style");
+      style.id = "summary-modal-styles";
+      style.textContent = `
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -60%);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+          }
         }
-        to {
-          opacity: 1;
-          transform: translate(-50%, -50%);
-        }
-      }
-    `;
-    document.head.appendChild(style);
+      `;
+      document.head.appendChild(style);
+    }
 
     modal.innerHTML = `
       <div style="padding: 24px; border-bottom: 1px solid #eee;">
@@ -375,12 +418,20 @@ class ContentScriptManager {
       const saveBtn = modal.querySelector("#save-summary") as HTMLElement;
 
       const closeModal = () => {
-        document.body.removeChild(overlay);
-        document.head.removeChild(style);
+        this.closeExistingModal();
       };
 
       closeBtn?.addEventListener("click", closeModal);
       overlay.addEventListener("click", closeModal);
+
+      // ESC键关闭modal
+      const handleEscKey = (event: KeyboardEvent) => {
+        if (event.key === "Escape") {
+          closeModal();
+          document.removeEventListener("keydown", handleEscKey);
+        }
+      };
+      document.addEventListener("keydown", handleEscKey);
 
       copyBtn?.addEventListener("click", () => {
         navigator.clipboard.writeText(summary).then(() => {
@@ -410,6 +461,10 @@ class ContentScriptManager {
         });
       });
     };
+
+    // 保存引用
+    this.currentModal = modal;
+    this.currentOverlay = overlay;
 
     // 添加到页面
     document.body.appendChild(overlay);

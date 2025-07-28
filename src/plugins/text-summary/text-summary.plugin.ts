@@ -164,10 +164,15 @@ export class TextSummaryPlugin implements Plugin {
   }
 
   /**
-   * 处理总结请求
+   * 处理总结请求（不显示UI）
    */
-  private async handleSummaryRequest(selectedText: string): Promise<void> {
-    if (!this.initContext) return;
+  private async handleSummaryRequest(selectedText: string): Promise<FeatureExecutionResult> {
+    if (!this.initContext) {
+      return {
+        success: false,
+        error: "插件未初始化",
+      };
+    }
 
     try {
       // 创建功能执行上下文
@@ -203,66 +208,40 @@ export class TextSummaryPlugin implements Plugin {
       const result = await textSummaryFeature.execute(context);
 
       if (result.success) {
-        this.showSummaryResult(selectedText, result);
+        // 不在这里显示结果，而是返回给调用者
+        console.log("✅ Summary completed successfully");
+        return result;
       } else {
         this.showError(result.error || "总结失败");
+        return result;
       }
     } catch (error) {
       console.error("❌ Summary request failed:", error);
       this.showError("总结请求失败");
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "未知错误",
+      };
     }
   }
 
   /**
-   * 显示总结结果
+   * 显示总结结果 (已禁用 - 由content script处理UI)
    */
   private showSummaryResult(
     originalText: string,
     result: FeatureExecutionResult
   ): void {
-    // 创建结果显示弹窗
-    const modal = this.createResultModal(
-      originalText,
-      result.actions?.[0] || "总结完成"
-    );
-    document.body.appendChild(modal);
-
-    // 3秒后自动关闭（可选）
-    setTimeout(() => {
-      if (modal.parentNode) {
-        modal.parentNode.removeChild(modal);
-      }
-    }, 10000);
+    // UI显示现在由content script处理，这里不再创建modal
+    console.log("📝 Summary result handled by content script");
   }
 
   /**
-   * 显示错误信息
+   * 显示错误信息 (简化版本)
    */
   private showError(message: string): void {
-    // 创建简单的错误提示
-    const notification = document.createElement("div");
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #ff4444;
-      color: white;
-      padding: 12px 16px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 10000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 14px;
-    `;
-    notification.textContent = `❌ ${message}`;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 5000);
+    // 简化的错误提示，避免UI冲突
+    console.error("❌ Plugin Error:", message);
   }
 
   /**

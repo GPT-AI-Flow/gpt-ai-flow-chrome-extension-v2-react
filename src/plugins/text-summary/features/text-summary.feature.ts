@@ -63,6 +63,9 @@ export class TextSummaryFeature implements Feature {
     context: FeatureExecutionContext
   ): Promise<FeatureExecutionResult> {
     try {
+      console.log("🔍 Executing text summary feature...");
+      console.log(`🔍 context: ${context}`);
+
       // 检查是否可以执行
       const canRun = await this.canExecute(context);
       if (!canRun) {
