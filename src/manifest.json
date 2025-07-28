@@ -17,5 +17,13 @@
   "background": {
     "{{chrome}}.service_worker": "src/background.ts",
     "{{firefox}}.scripts": ["src/background.ts"]
-  }
+  },
+  "permissions": ["contextMenus", "scripting", "storage", "activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/plugins/text-summary/content-script.js"],
+      "run_at": "document_end"
+    }
+  ]
 }
