@@ -109,8 +109,10 @@ export class PluginManager {
    */
   private async discoverAndLoadPlugins(): Promise<void> {
     const pluginModules = [
-      { path: "../plugins/feature-a", name: "feature-a-plugin" },
-      { path: "../plugins/feature-b", name: "feature-b-plugin" },
+      {
+        path: "../plugins/text-summary/text-summary.plugin",
+        name: "text-summary-plugin",
+      },
     ];
 
     const loadPromises = pluginModules.map(async ({ path, name }) => {
