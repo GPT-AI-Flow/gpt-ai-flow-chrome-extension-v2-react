@@ -160,75 +160,77 @@ export class TextSummaryPlugin implements Plugin {
 
   /**
    * 处理总结请求（不显示UI）
+   * @Test
    */
-  private async handleSummaryRequest(
-    selectedText: string
-  ): Promise<FeatureExecutionResult> {
-    if (!this.initContext) {
-      return {
-        success: false,
-        error: "插件未初始化",
-      };
-    }
+  // private async handleSummaryRequest(
+  //   selectedText: string
+  // ): Promise<FeatureExecutionResult> {
+  //   if (!this.initContext) {
+  //     return {
+  //       success: false,
+  //       error: "插件未初始化",
+  //     };
+  //   }
 
-    try {
-      // 创建功能执行上下文
-      const context: FeatureExecutionContext = {
-        siteConfig: {
-          id: "current-site",
-          name: window.location.hostname,
-          urlRules: [
-            {
-              pattern: window.location.href,
-              type: "exact",
-              include: true,
-            },
-          ],
-          enabledFeatures: [
-            {
-              featureId: "text-summary",
-              enabled: true,
-              settings: this.config.settings,
-            },
-          ],
-        },
-        settings: this.config.settings,
-        document: document,
-        storage: this.initContext.storage,
-        url: window.location.href,
-      };
+  //   try {
+  //     // 创建功能执行上下文
+  //     const context: FeatureExecutionContext = {
+  //       siteConfig: {
+  //         id: "current-site",
+  //         name: window.location.hostname,
+  //         urlRules: [
+  //           {
+  //             pattern: window.location.href,
+  //             type: "exact",
+  //             include: true,
+  //           },
+  //         ],
+  //         enabledFeatures: [
+  //           {
+  //             featureId: "text-summary",
+  //             enabled: true,
+  //             settings: this.config.settings,
+  //           },
+  //         ],
+  //       },
+  //       settings: this.config.settings,
+  //       document: document,
+  //       storage: this.initContext.storage,
+  //       url: window.location.href,
+  //     };
 
-      // 添加选中的文本到设置中
-      context.settings.selectedText = selectedText;
+  //     // 添加选中的文本到设置中
+  //     context.settings.selectedText = selectedText;
 
-      // 执行文本总结功能
-      const result = await textSummaryFeature.execute(context);
+  //     // 执行文本总结功能
+  //     const result = await textSummaryFeature.execute(context);
 
-      if (result.success) {
-        // 不在这里显示结果，而是返回给调用者
-        console.log("✅ Summary completed successfully");
-        return result;
-      } else {
-        this.showError(result.error || "总结失败");
-        return result;
-      }
-    } catch (error) {
-      console.error("❌ Summary request failed:", error);
-      this.showError("总结请求失败");
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "未知错误",
-      };
-    }
-  }
+  //     if (result.success) {
+  //       // 不在这里显示结果，而是返回给调用者
+  //       console.log("✅ Summary completed successfully");
+  //       return result;
+  //     } else {
+  //       this.showError(result.error || "总结失败");
+  //       return result;
+  //     }
+  //   } catch (error) {
+  //     console.error("❌ Summary request failed:", error);
+  //     this.showError("总结请求失败");
+  //     return {
+  //       success: false,
+  //       error: error instanceof Error ? error.message : "未知错误",
+  //     };
+  //   }
+  // }
 
   /**
    * 显示错误信息 (简化版本)
+   * @Test
    */
-  private showError(message: string): void {
-    // 简化的错误提示，避免UI冲突
-    console.error("❌ Plugin Error:", message);
-  }
+  // private showError(message: string): void {
+  //   // 简化的错误提示，避免UI冲突
+  //   console.error("❌ Plugin Error:", message);
+  // }
 }
 
 // 导出插件实例

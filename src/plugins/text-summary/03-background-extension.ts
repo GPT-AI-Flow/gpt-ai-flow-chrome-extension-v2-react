@@ -64,74 +64,76 @@ export class TextSummaryBackground {
 
   /**
    * 处理总结请求
+   * @Test
    */
-  private async handleSummaryRequest(selectedText: string): Promise<void> {
-    try {
-      console.log(
-        `🎯 Summary requested for: "${selectedText.substring(0, 50)}..."`
-      );
+  // private async handleSummaryRequest(selectedText: string): Promise<void> {
+  //   try {
+  //     console.log(
+  //       `🎯 Summary requested for: "${selectedText.substring(0, 50)}..."`
+  //     );
 
-      // 获取当前活跃的标签页
-      const tabs = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-      const currentTab = tabs[0];
+  //     // 获取当前活跃的标签页
+  //     const tabs = await chrome.tabs.query({
+  //       active: true,
+  //       currentWindow: true,
+  //     });
+  //     const currentTab = tabs[0];
 
-      if (!currentTab?.id) {
-        console.error("❌ No active tab found");
-        return;
-      }
+  //     if (!currentTab?.id) {
+  //       console.error("❌ No active tab found");
+  //       return;
+  //     }
 
-      // 发送消息到content script
-      await chrome.tabs.sendMessage(currentTab.id, {
-        type: "SUMMARY_REQUESTED",
-        selectedText: selectedText,
-      });
-    } catch (error) {
-      console.error("❌ Failed to handle summary request:", error);
+  //     // 发送消息到content script
+  //     await chrome.tabs.sendMessage(currentTab.id, {
+  //       type: "SUMMARY_REQUESTED",
+  //       selectedText: selectedText,
+  //     });
+  //   } catch (error) {
+  //     console.error("❌ Failed to handle summary request:", error);
 
-      // 尝试注入content script
-      try {
-        const tabs = await chrome.tabs.query({
-          active: true,
-          currentWindow: true,
-        });
-        const currentTab = tabs[0];
+  //     // 尝试注入content script
+  //     try {
+  //       const tabs = await chrome.tabs.query({
+  //         active: true,
+  //         currentWindow: true,
+  //       });
+  //       const currentTab = tabs[0];
 
-        if (currentTab?.id) {
-          await this.injectContentScript(currentTab.id);
+  //       if (currentTab?.id) {
+  //         await this.injectContentScript(currentTab.id);
 
-          // 重新发送消息
-          setTimeout(async () => {
-            await chrome.tabs.sendMessage(currentTab.id!, {
-              type: "SUMMARY_REQUESTED",
-              selectedText: selectedText,
-            });
-          }, 100);
-        }
-      } catch (injectError) {
-        console.error("❌ Failed to inject content script:", injectError);
-      }
-    }
-  }
+  //         // 重新发送消息
+  //         setTimeout(async () => {
+  //           await chrome.tabs.sendMessage(currentTab.id!, {
+  //             type: "SUMMARY_REQUESTED",
+  //             selectedText: selectedText,
+  //           });
+  //         }, 100);
+  //       }
+  //     } catch (injectError) {
+  //       console.error("❌ Failed to inject content script:", injectError);
+  //     }
+  //   }
+  // }
 
   /**
    * 注入content script
+   * @Test
    */
-  private async injectContentScript(tabId: number): Promise<void> {
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId },
-        files: ["src/plugins/text-summary/04-content-script.js"],
-      });
+  // private async injectContentScript(tabId: number): Promise<void> {
+  //   try {
+  //     await chrome.scripting.executeScript({
+  //       target: { tabId },
+  //       files: ["src/plugins/text-summary/04-content-script.js"],
+  //     });
 
-      console.log("✅ Content script injected successfully");
-    } catch (error) {
-      console.error("❌ Failed to inject content script:", error);
-      throw error;
-    }
-  }
+  //     console.log("✅ Content script injected successfully");
+  //   } catch (error) {
+  //     console.error("❌ Failed to inject content script:", error);
+  //     throw error;
+  //   }
+  // }
 
   /**
    * 设置安装监听器

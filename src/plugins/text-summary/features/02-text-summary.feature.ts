@@ -115,94 +115,96 @@ export class TextSummaryFeature implements Feature {
 
   /**
    * 调用总结API
+   * @Test
    */
-  private async callSummaryAPI(params: {
-    text: string;
-    apiUrl: string;
-    apiKey?: string;
-    maxLength: number;
-    language: string;
-  }): Promise<string> {
-    const { text, apiUrl, apiKey, maxLength, language } = params;
+  // private async callSummaryAPI(params: {
+  //   text: string;
+  //   apiUrl: string;
+  //   apiKey?: string;
+  //   maxLength: number;
+  //   language: string;
+  // }): Promise<string> {
+  //   const { text, apiUrl, apiKey, maxLength, language } = params;
 
-    // 构建请求数据
-    const requestData = {
-      text: text,
-      max_length: maxLength,
-      language: language,
-      timestamp: Date.now(),
-    };
+  //   // 构建请求数据
+  //   const requestData = {
+  //     text: text,
+  //     max_length: maxLength,
+  //     language: language,
+  //     timestamp: Date.now(),
+  //   };
 
-    // 构建请求选项
-    const requestOptions: RequestInit = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(apiKey && { Authorization: `Bearer ${apiKey}` }),
-      },
-      body: JSON.stringify(requestData),
-    };
+  //   // 构建请求选项
+  //   const requestOptions: RequestInit = {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       ...(apiKey && { Authorization: `Bearer ${apiKey}` }),
+  //     },
+  //     body: JSON.stringify(requestData),
+  //   };
 
-    try {
-      console.log(`📡 Calling summary API: ${apiUrl}`);
+  //   try {
+  //     console.log(`📡 Calling summary API: ${apiUrl}`);
 
-      const response = await fetch(apiUrl, requestOptions);
+  //     const response = await fetch(apiUrl, requestOptions);
 
-      if (!response.ok) {
-        throw new Error(
-          `API request failed: ${response.status} ${response.statusText}`
-        );
-      }
+  //     if (!response.ok) {
+  //       throw new Error(
+  //         `API request failed: ${response.status} ${response.statusText}`
+  //       );
+  //     }
 
-      const data: SummaryApiResponse = await response.json();
+  //     const data: SummaryApiResponse = await response.json();
 
-      if (!data.success) {
-        throw new Error(data.error || "API返回失败状态");
-      }
+  //     if (!data.success) {
+  //       throw new Error(data.error || "API返回失败状态");
+  //     }
 
-      if (!data.summary) {
-        throw new Error("API未返回总结内容");
-      }
+  //     if (!data.summary) {
+  //       throw new Error("API未返回总结内容");
+  //     }
 
-      console.log(`✅ Summary received: ${data.summary.length} characters`);
-      return data.summary;
-    } catch (error) {
-      // 如果API调用失败，使用本地简单总结逻辑作为备用
-      console.warn("⚠️ API call failed, using fallback summary:", error);
-      return this.generateFallbackSummary(text, maxLength);
-    }
-  }
+  //     console.log(`✅ Summary received: ${data.summary.length} characters`);
+  //     return data.summary;
+  //   } catch (error) {
+  //     // 如果API调用失败，使用本地简单总结逻辑作为备用
+  //     console.warn("⚠️ API call failed, using fallback summary:", error);
+  //     return this.generateFallbackSummary(text, maxLength);
+  //   }
+  // }
 
   /**
    * 生成备用总结（当API不可用时）
+   * @Test
    */
-  private generateFallbackSummary(text: string, maxLength: number): string {
-    // 简单的文本截取和处理逻辑
-    const sentences = text
-      .split(/[。！？.!?]/)
-      .filter((s) => s.trim().length > 0);
+  // private generateFallbackSummary(text: string, maxLength: number): string {
+  //   // 简单的文本截取和处理逻辑
+  //   const sentences = text
+  //     .split(/[。！？.!?]/)
+  //     .filter((s) => s.trim().length > 0);
 
-    if (sentences.length === 0) {
-      return (
-        text.substring(0, maxLength) + (text.length > maxLength ? "..." : "")
-      );
-    }
+  //   if (sentences.length === 0) {
+  //     return (
+  //       text.substring(0, maxLength) + (text.length > maxLength ? "..." : "")
+  //     );
+  //   }
 
-    // 取前几句话作为总结
-    let summary = "";
-    for (const sentence of sentences) {
-      if (summary.length + sentence.length > maxLength) {
-        break;
-      }
-      summary += sentence.trim() + "。";
-    }
+  //   // 取前几句话作为总结
+  //   let summary = "";
+  //   for (const sentence of sentences) {
+  //     if (summary.length + sentence.length > maxLength) {
+  //       break;
+  //     }
+  //     summary += sentence.trim() + "。";
+  //   }
 
-    if (summary.length === 0) {
-      summary = sentences[0].substring(0, maxLength - 3) + "...";
-    }
+  //   if (summary.length === 0) {
+  //     summary = sentences[0].substring(0, maxLength - 3) + "...";
+  //   }
 
-    return `[本地总结] ${summary}`;
-  }
+  //   return `[本地总结] ${summary}`;
+  // }
 
   /**
    * 保存总结历史
