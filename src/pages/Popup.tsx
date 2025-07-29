@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Popup.css";
-import { TextSummaryPopup } from "../plugins/text-summary/popup-extension";
+import { TextSummaryPopup } from "../plugins/text-summary/UI/popup-extension";
 
 interface PluginStats {
   totalSummaries: number;
