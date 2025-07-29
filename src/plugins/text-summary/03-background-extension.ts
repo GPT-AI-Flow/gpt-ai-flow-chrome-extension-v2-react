@@ -53,13 +53,8 @@ export class TextSummaryBackground {
       const settings = await this.getSettings();
       this.contextMenuManager = new ContextMenuManager(settings.settings || {});
 
-      // 设置总结回调
-      this.contextMenuManager.onSummaryRequested(
-        this.handleSummaryRequest.bind(this)
-      );
-
       // 注册右键菜单
-      await this.contextMenuManager.registerContextMenu();
+      await this.contextMenuManager.initialize();
 
       console.log("✅ Context menu manager initialized");
     } catch (error) {

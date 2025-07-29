@@ -52,7 +52,6 @@ export class TextSummaryPlugin implements Plugin {
 
     // 初始化右键菜单管理器
     this.contextMenuManager = new ContextMenuManager(this.config.settings);
-    await this.contextMenuManager.initialize();
 
     console.log(`✅ ${this.name} initialized`);
   }
@@ -68,12 +67,7 @@ export class TextSummaryPlugin implements Plugin {
     console.log(`🔌 Activating ${this.name}...`);
 
     // 注册右键菜单
-    await this.contextMenuManager.registerContextMenu();
-
-    // 监听右键菜单点击事件
-    this.contextMenuManager.onSummaryRequested((selectedText: string) => {
-      this.handleSummaryRequest(selectedText);
-    });
+    await this.contextMenuManager.initialize();
 
     console.log(`✅ ${this.name} activated`);
   }
