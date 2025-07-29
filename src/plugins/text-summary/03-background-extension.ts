@@ -146,11 +146,11 @@ export class TextSummaryBackground {
       console.log("📦 Text Summary extension event:", details.reason);
 
       if (details.reason === "install" || details.reason === "update") {
-        // 重新初始化右键菜单
-        await this.initializeContextMenu();
-
         // 初始化默认设置
         await this.initializeDefaultSettings();
+
+        // 重新初始化右键菜单
+        await this.initializeContextMenu();
       }
     });
   }

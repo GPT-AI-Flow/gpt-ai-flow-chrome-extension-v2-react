@@ -9,7 +9,8 @@ export class ContextMenuManager {
 
   constructor(settings: Record<string, any>) {
     this.settings = settings;
-    this.setupMessageListener();
+    // ❌ 移除消息监听器，ContextMenuManager只负责菜单管理
+    // this.setupMessageListener();
   }
 
   /**
@@ -109,26 +110,11 @@ export class ContextMenuManager {
   }
 
   /**
-   * 设置消息监听器
-   */
-  private setupMessageListener(): void {
-    // 在content script中监听来自background的消息
-    if (typeof chrome !== "undefined" && chrome.runtime) {
-      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.type === "SUMMARY_REQUESTED") {
-          if (this.onSummaryCallback) {
-            this.onSummaryCallback(message.selectedText);
-          }
-          sendResponse({ success: true });
-        }
-      });
-    }
-  }
-
-  /**
-   * 设置总结请求回调
+   * 设置总结请求回调（废弃）
+   * @deprecated 不再需要回调，消息直接发送给content script处理
    */
   onSummaryRequested(callback: (selectedText: string) => void): void {
+    console.warn("⚠️ onSummaryRequested is deprecated. Messages are sent directly to content script.");
     this.onSummaryCallback = callback;
   }
 
