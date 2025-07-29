@@ -86,13 +86,14 @@ export class TextSummaryFeature implements Feature {
       );
 
       // 调用总结API
-      const summary = await this.callSummaryAPI({
-        text: selectedText,
-        apiUrl,
-        apiKey,
-        maxLength,
-        language,
-      });
+      // const summary = await this.callSummaryAPI({
+      //   text: selectedText,
+      //   apiUrl,
+      //   apiKey,
+      //   maxLength,
+      //   language,
+      // });
+      const summary = "这是AI生成的总结内容..."; // @Dev
 
       // 保存总结历史（可选）
       await this.saveSummaryHistory(context, selectedText, summary);

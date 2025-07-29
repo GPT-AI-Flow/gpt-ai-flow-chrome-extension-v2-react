@@ -4,7 +4,7 @@
  */
 
 import { PluginManager } from "../../core/plugin-manager";
-import textSummaryPlugin from "./text-summary.plugin";
+import textSummaryPlugin from "./01-text-summary.plugin";
 
 class ContentScriptManager {
   private pluginManager: PluginManager;
@@ -176,7 +176,7 @@ class ContentScriptManager {
             },
           ],
         },
-        settings: { 
+        settings: {
           selectedText,
           apiUrl: configResult.apiUrl,
           apiKey: configResult.apiKey,
@@ -267,14 +267,14 @@ class ContentScriptManager {
     // 移除现有的modal和overlay
     const existingOverlay = document.getElementById("summary-modal-overlay");
     const existingModal = document.getElementById("summary-modal");
-    
+
     if (existingOverlay) {
       existingOverlay.remove();
     }
     if (existingModal) {
       existingModal.remove();
     }
-    
+
     this.currentModal = null;
     this.currentOverlay = null;
   }

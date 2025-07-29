@@ -31,7 +31,7 @@ src/plugins/text-summary/
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["src/plugins/text-summary/content-script.js"],
+      "js": ["src/plugins/text-summary/04-content-script.js"],
       "run_at": "document_end"
     }
   ]

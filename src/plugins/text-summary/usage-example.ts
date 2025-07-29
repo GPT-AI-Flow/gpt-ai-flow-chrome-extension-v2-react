@@ -1,7 +1,7 @@
 // 示例：如何使用文本总结插件
 
 import { PluginManager } from "../../core/plugin-manager";
-import textSummaryPlugin from "./text-summary.plugin";
+import textSummaryPlugin from "./01-text-summary.plugin";
 
 // 使用示例
 async function demonstrateTextSummaryPlugin() {

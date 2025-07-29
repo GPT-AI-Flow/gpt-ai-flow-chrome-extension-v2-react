@@ -7,4 +7,4 @@ browser.runtime.onInstalled.addListener((details) => {
 });
 
 // 集成文本总结功能
-import "./plugins/text-summary/background-extension";
+import "./plugins/text-summary/03-background-extension";

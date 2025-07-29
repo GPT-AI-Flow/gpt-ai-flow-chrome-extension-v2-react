@@ -3,9 +3,11 @@
  * 扩展现有的background.ts功能，添加右键菜单支持
  */
 
+import { ContextMenuManager } from "./05-context-menu-manager";
+
 export class TextSummaryBackground {
   private static instance: TextSummaryBackground;
-  private readonly MENU_ID = "gpt-ai-flow-summary";
+  private contextMenuManager?: ContextMenuManager;
 
   private constructor() {
     this.init();
@@ -25,8 +27,11 @@ export class TextSummaryBackground {
     try {
       console.log("🚀 Initializing Text Summary Background...");
 
-      // 注册右键菜单
-      await this.setupContextMenu();
+      // 初始化默认设置
+      await this.initializeDefaultSettings();
+
+      // 初始化右键菜单管理器
+      await this.initializeContextMenu();
 
       // 监听扩展安装/更新事件
       this.setupInstallListener();
@@ -41,73 +46,75 @@ export class TextSummaryBackground {
   }
 
   /**
-   * 设置右键菜单
+   * 初始化右键菜单管理器
    */
-  private async setupContextMenu(): Promise<void> {
+  private async initializeContextMenu(): Promise<void> {
     try {
-      // 清除现有菜单
-      await chrome.contextMenus.removeAll();
+      const settings = await this.getSettings();
+      this.contextMenuManager = new ContextMenuManager(settings.settings || {});
 
-      // 创建文本总结菜单
-      chrome.contextMenus.create({
-        id: this.MENU_ID,
-        title: "📝 AI总结选中文本",
-        contexts: ["selection"],
-        documentUrlPatterns: ["http://*/*", "https://*/*"],
-      });
+      // 设置总结回调
+      this.contextMenuManager.onSummaryRequested(
+        this.handleSummaryRequest.bind(this)
+      );
 
-      // 监听菜单点击事件
-      chrome.contextMenus.onClicked.addListener((info, tab) => {
-        this.handleMenuClick(info, tab);
-      });
+      // 注册右键菜单
+      await this.contextMenuManager.registerContextMenu();
 
-      console.log("✅ Context menu created successfully");
+      console.log("✅ Context menu manager initialized");
     } catch (error) {
-      console.error("❌ Failed to setup context menu:", error);
+      console.error("❌ Failed to initialize context menu:", error);
     }
   }
 
   /**
-   * 处理右键菜单点击
+   * 处理总结请求
    */
-  private async handleMenuClick(
-    info: chrome.contextMenus.OnClickData,
-    tab?: chrome.tabs.Tab
-  ): Promise<void> {
-    if (info.menuItemId !== this.MENU_ID || !tab?.id) {
-      return;
-    }
-
-    const selectedText = info.selectionText;
-    if (!selectedText || selectedText.trim().length === 0) {
-      console.warn("⚠️ No text selected");
-      return;
-    }
-
+  private async handleSummaryRequest(selectedText: string): Promise<void> {
     try {
       console.log(
         `🎯 Summary requested for: "${selectedText.substring(0, 50)}..."`
       );
 
+      // 获取当前活跃的标签页
+      const tabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      const currentTab = tabs[0];
+
+      if (!currentTab?.id) {
+        console.error("❌ No active tab found");
+        return;
+      }
+
       // 发送消息到content script
-      await chrome.tabs.sendMessage(tab.id, {
+      await chrome.tabs.sendMessage(currentTab.id, {
         type: "SUMMARY_REQUESTED",
         selectedText: selectedText,
       });
     } catch (error) {
-      console.error("❌ Failed to send message to content script:", error);
+      console.error("❌ Failed to handle summary request:", error);
 
       // 尝试注入content script
       try {
-        await this.injectContentScript(tab.id);
+        const tabs = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
+        const currentTab = tabs[0];
 
-        // 重新发送消息
-        setTimeout(async () => {
-          await chrome.tabs.sendMessage(tab.id!, {
-            type: "SUMMARY_REQUESTED",
-            selectedText: selectedText,
-          });
-        }, 100);
+        if (currentTab?.id) {
+          await this.injectContentScript(currentTab.id);
+
+          // 重新发送消息
+          setTimeout(async () => {
+            await chrome.tabs.sendMessage(currentTab.id!, {
+              type: "SUMMARY_REQUESTED",
+              selectedText: selectedText,
+            });
+          }, 100);
+        }
       } catch (injectError) {
         console.error("❌ Failed to inject content script:", injectError);
       }
@@ -121,7 +128,7 @@ export class TextSummaryBackground {
     try {
       await chrome.scripting.executeScript({
         target: { tabId },
-        files: ["src/plugins/text-summary/content-script.js"],
+        files: ["src/plugins/text-summary/04-content-script.js"],
       });
 
       console.log("✅ Content script injected successfully");
@@ -139,8 +146,8 @@ export class TextSummaryBackground {
       console.log("📦 Text Summary extension event:", details.reason);
 
       if (details.reason === "install" || details.reason === "update") {
-        // 重新设置右键菜单
-        await this.setupContextMenu();
+        // 重新初始化右键菜单
+        await this.initializeContextMenu();
 
         // 初始化默认设置
         await this.initializeDefaultSettings();

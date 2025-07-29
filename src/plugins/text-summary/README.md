@@ -23,6 +23,13 @@ src/plugins/text-summary/
 └── README.md                     # 说明文档
 ```
 
+### 职责分离
+
+- Feature：只关心算法，不管界面
+- Content Script：只管界面显示，不管算法
+- Background：只管消息传递，不管具体实现
+- Context Menu：只管菜单，不管其他
+
 ## 🔧 配置说明
 
 ### 插件配置

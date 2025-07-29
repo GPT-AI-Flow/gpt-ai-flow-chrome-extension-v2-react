@@ -9,8 +9,8 @@ import {
   FeatureExecutionContext,
   FeatureExecutionResult,
 } from "../../core/interfaces/feature.interface";
-import { textSummaryFeature } from "./features/text-summary.feature";
-import { ContextMenuManager } from "./context-menu-manager";
+import { textSummaryFeature } from "./features/02-text-summary.feature";
+import { ContextMenuManager } from "./05-context-menu-manager";
 
 /**
  * 文本总结插件
@@ -52,6 +52,7 @@ export class TextSummaryPlugin implements Plugin {
 
     // 初始化右键菜单管理器
     this.contextMenuManager = new ContextMenuManager(this.config.settings);
+    await this.contextMenuManager.initialize();
 
     console.log(`✅ ${this.name} initialized`);
   }
@@ -166,7 +167,9 @@ export class TextSummaryPlugin implements Plugin {
   /**
    * 处理总结请求（不显示UI）
    */
-  private async handleSummaryRequest(selectedText: string): Promise<FeatureExecutionResult> {
+  private async handleSummaryRequest(
+    selectedText: string
+  ): Promise<FeatureExecutionResult> {
     if (!this.initContext) {
       return {
         success: false,
@@ -226,122 +229,11 @@ export class TextSummaryPlugin implements Plugin {
   }
 
   /**
-   * 显示总结结果 (已禁用 - 由content script处理UI)
-   */
-  private showSummaryResult(
-    originalText: string,
-    result: FeatureExecutionResult
-  ): void {
-    // UI显示现在由content script处理，这里不再创建modal
-    console.log("📝 Summary result handled by content script");
-  }
-
-  /**
    * 显示错误信息 (简化版本)
    */
   private showError(message: string): void {
     // 简化的错误提示，避免UI冲突
     console.error("❌ Plugin Error:", message);
-  }
-
-  /**
-   * 创建结果显示模态框
-   */
-  private createResultModal(
-    originalText: string,
-    summary: string
-  ): HTMLElement {
-    const modal = document.createElement("div");
-    modal.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      z-index: 10001;
-      max-width: 600px;
-      max-height: 80vh;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    `;
-
-    modal.innerHTML = `
-      <div style="padding: 24px; border-bottom: 1px solid #eee;">
-        <h3 style="margin: 0 0 16px 0; color: #333; font-size: 18px;">📝 文本总结</h3>
-        <button id="close-summary" style="
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          color: #666;
-        ">×</button>
-      </div>
-      <div style="padding: 24px; max-height: 400px; overflow-y: auto;">
-        <div style="margin-bottom: 20px;">
-          <h4 style="margin: 0 0 8px 0; color: #666; font-size: 14px;">原文：</h4>
-          <div style="
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 6px;
-            border-left: 3px solid #007acc;
-            font-size: 14px;
-            line-height: 1.5;
-            max-height: 120px;
-            overflow-y: auto;
-          ">${originalText}</div>
-        </div>
-        <div>
-          <h4 style="margin: 0 0 8px 0; color: #666; font-size: 14px;">总结：</h4>
-          <div style="
-            background: #e8f5e8;
-            padding: 12px;
-            border-radius: 6px;
-            border-left: 3px solid #28a745;
-            font-size: 14px;
-            line-height: 1.5;
-          ">${summary}</div>
-        </div>
-      </div>
-    `;
-
-    // 添加关闭事件
-    const closeBtn = modal.querySelector("#close-summary");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        if (modal.parentNode) {
-          modal.parentNode.removeChild(modal);
-        }
-      });
-    }
-
-    // 点击背景关闭
-    const overlay = document.createElement("div");
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 10000;
-    `;
-
-    overlay.addEventListener("click", () => {
-      if (overlay.parentNode) {
-        overlay.parentNode.removeChild(overlay);
-      }
-      if (modal.parentNode) {
-        modal.parentNode.removeChild(modal);
-      }
-    });
-
-    document.body.appendChild(overlay);
-    return modal;
   }
 }
 

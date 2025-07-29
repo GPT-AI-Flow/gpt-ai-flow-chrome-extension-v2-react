@@ -3,9 +3,9 @@
  */
 
 // 测试导入是否正常工作
-import { textSummaryFeature } from "../features/text-summary.feature";
-import { ContextMenuManager } from "../context-menu-manager";
-import textSummaryPlugin from "../text-summary.plugin";
+import { textSummaryFeature } from "../features/02-text-summary.feature";
+import { ContextMenuManager } from "../05-context-menu-manager";
+import textSummaryPlugin from "../01-text-summary.plugin";
 
 console.log("🧪 Testing Text Summary Plugin...");
 
