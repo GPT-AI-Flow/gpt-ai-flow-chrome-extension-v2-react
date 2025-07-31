@@ -110,9 +110,10 @@ export class PluginManager {
   private async discoverAndLoadPlugins(): Promise<void> {
     const pluginModules = [
       {
-        path: "../plugins/text-summary/text-summary.plugin",
+        path: "../plugins/text-summary/01-text-summary.plugin",
         name: "text-summary-plugin",
       },
+      // 在这里添加更多插件...
     ];
 
     const loadPromises = pluginModules.map(async ({ path, name }) => {

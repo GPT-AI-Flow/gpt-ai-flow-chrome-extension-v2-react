@@ -3,17 +3,12 @@
  * 运行在每个网页中，处理用户交互和文本总结功能
  */
 
-import { PluginManager } from "../../core/plugin-manager";
-import textSummaryPlugin from "./01-text-summary.plugin";
-
 class ContentScriptManager {
-  private pluginManager: PluginManager;
   private isInitialized = false;
   private currentModal: HTMLElement | null = null;
   private currentOverlay: HTMLElement | null = null;
 
   constructor() {
-    this.pluginManager = new PluginManager();
     this.init();
   }
 
@@ -27,10 +22,10 @@ class ContentScriptManager {
       // 等待DOM加载完成
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () =>
-          this.initializePlugin()
+          this.initializeContentScript()
         );
       } else {
-        await this.initializePlugin();
+        await this.initializeContentScript();
       }
 
       // 监听来自background script的消息
@@ -43,58 +38,18 @@ class ContentScriptManager {
   }
 
   /**
-   * 初始化插件
+   * 初始化内容脚本功能
    */
-  private async initializePlugin(): Promise<void> {
+  private async initializeContentScript(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
-      // 初始化插件管理器
-      await this.pluginManager.initialize();
-
-      // 加载文本总结插件
-      await this.pluginManager.loadPlugin(textSummaryPlugin);
-
-      // 配置插件（可以从存储中读取用户配置）
-      await this.configurePlugin();
-
+      // 内容脚本初始化完成，不再需要初始化插件管理器
+      // 插件管理器在 background script 中统一管理
       this.isInitialized = true;
-      console.log("✅ Text Summary Plugin loaded successfully");
+      console.log("✅ Text Summary Content Script loaded successfully");
     } catch (error) {
-      console.error("❌ Failed to initialize plugin:", error);
-    }
-  }
-
-  /**
-   * 配置插件
-   */
-  private async configurePlugin(): Promise<void> {
-    try {
-      // 从扩展存储中读取配置
-      const result = await chrome.storage.sync.get({
-        apiUrl: "https://api.openai.com/v1/chat/completions", // 默认API
-        apiKey: "",
-        maxLength: 200,
-        language: "zh-CN",
-      });
-
-      await textSummaryPlugin.setConfig({
-        settings: result,
-      });
-
-      console.log("📝 Plugin configured with settings:", result);
-    } catch (error) {
-      console.warn("⚠️ Failed to load plugin configuration:", error);
-
-      // 使用默认配置
-      await textSummaryPlugin.setConfig({
-        settings: {
-          apiUrl: "",
-          apiKey: "",
-          maxLength: 200,
-          language: "zh-CN",
-        },
-      });
+      console.error("❌ Failed to initialize content script:", error);
     }
   }
 
@@ -115,10 +70,14 @@ class ContentScriptManager {
           break;
 
         case "GET_PLUGIN_STATUS":
-          sendResponse({
-            success: true,
-            status: this.pluginManager.getPluginStatus(),
-          });
+          // 请求 background script 获取插件状态
+          chrome.runtime.sendMessage(
+            { type: "GET_PLUGIN_STATUS" },
+            (response) => {
+              sendResponse(response);
+            }
+          );
+          return true; // 异步响应
           break;
 
         default:
@@ -188,12 +147,24 @@ class ContentScriptManager {
         url: window.location.href,
       };
 
-      // 执行总结功能
-      const result = await this.pluginManager.executeFeature(
-        "text-summary",
-        undefined,
-        context
-      );
+      // 通过消息传递请求 background script 执行功能
+      const result = await new Promise<{
+        success: boolean;
+        actions?: string[];
+        error?: string;
+      }>((resolve) => {
+        chrome.runtime.sendMessage(
+          {
+            type: "EXECUTE_FEATURE",
+            featureId: "text-summary",
+            implementation: undefined,
+            context: context,
+          },
+          (response) => {
+            resolve(response);
+          }
+        );
+      });
 
       // UI 反馈
       if (result.success) {
@@ -212,8 +183,10 @@ class ContentScriptManager {
    */
   private async updateConfig(config: any): Promise<void> {
     try {
-      await textSummaryPlugin.setConfig({ settings: config });
-      console.log("✅ Plugin configuration updated");
+      // 配置由 background script 中的插件管理器处理
+      // 这里可以发送消息更新配置，或者直接保存到 storage
+      await chrome.storage.sync.set(config);
+      console.log("✅ Configuration updated");
     } catch (error) {
       console.error("❌ Failed to update configuration:", error);
     }
