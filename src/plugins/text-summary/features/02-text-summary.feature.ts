@@ -7,11 +7,11 @@ import {
 /**
  * 文本总结API响应接口
  */
-interface SummaryApiResponse {
-  success: boolean;
-  summary?: string;
-  error?: string;
-}
+// interface SummaryApiResponse {
+//   success: boolean;
+//   summary?: string;
+//   error?: string;
+// }
 
 /**
  * 文本总结功能实现
@@ -49,6 +49,10 @@ export class TextSummaryFeature implements Feature {
 
     // 检查是否配置了API
     const apiUrl = context.settings.apiUrl;
+    console.log(
+      "check apiUrl in canExecute in the file src/plugins/text-summary/features/02-text-summary.feature.ts",
+      apiUrl
+    );
     if (!apiUrl) {
       return false;
     }
@@ -230,7 +234,7 @@ export class TextSummaryFeature implements Feature {
         summary: summary,
       };
 
-      history.unshift(newRecord);
+      history.unshift(newRecord); // Add newRecord to the beginning of the history
 
       // 限制历史记录数量（最多保留50条）
       if (history.length > 50) {

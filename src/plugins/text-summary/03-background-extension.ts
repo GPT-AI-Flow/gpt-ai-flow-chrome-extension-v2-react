@@ -46,23 +46,6 @@ export class TextSummaryBackground {
   }
 
   /**
-   * 初始化右键菜单管理器
-   */
-  private async initializeContextMenu(): Promise<void> {
-    try {
-      const settings = await this.getSettings();
-      this.contextMenuManager = new ContextMenuManager(settings.settings || {});
-
-      // 注册右键菜单
-      await this.contextMenuManager.initialize();
-
-      console.log("✅ Context menu manager initialized");
-    } catch (error) {
-      console.error("❌ Failed to initialize context menu:", error);
-    }
-  }
-
-  /**
    * 处理总结请求
    * @Test
    */
@@ -136,23 +119,6 @@ export class TextSummaryBackground {
   // }
 
   /**
-   * 设置安装监听器
-   */
-  private setupInstallListener(): void {
-    chrome.runtime.onInstalled.addListener(async (details) => {
-      console.log("📦 Text Summary extension event:", details.reason);
-
-      if (details.reason === "install" || details.reason === "update") {
-        // 初始化默认设置
-        await this.initializeDefaultSettings();
-
-        // 重新初始化右键菜单
-        await this.initializeContextMenu();
-      }
-    });
-  }
-
-  /**
    * 初始化默认设置
    */
   private async initializeDefaultSettings(): Promise<void> {
@@ -178,6 +144,40 @@ export class TextSummaryBackground {
     } catch (error) {
       console.error("❌ Failed to initialize default settings:", error);
     }
+  }
+
+  /**
+   * 初始化右键菜单管理器
+   */
+  private async initializeContextMenu(): Promise<void> {
+    try {
+      const settings = await this.getSettings();
+      this.contextMenuManager = new ContextMenuManager(settings.settings || {});
+
+      // 注册右键菜单
+      await this.contextMenuManager.initialize();
+
+      console.log("✅ Context menu manager initialized");
+    } catch (error) {
+      console.error("❌ Failed to initialize context menu:", error);
+    }
+  }
+
+  /**
+   * 设置安装监听器
+   */
+  private setupInstallListener(): void {
+    chrome.runtime.onInstalled.addListener(async (details) => {
+      console.log("📦 Text Summary extension event:", details.reason);
+
+      if (details.reason === "install" || details.reason === "update") {
+        // 初始化默认设置
+        await this.initializeDefaultSettings();
+
+        // 重新初始化右键菜单
+        await this.initializeContextMenu();
+      }
+    });
   }
 
   /**

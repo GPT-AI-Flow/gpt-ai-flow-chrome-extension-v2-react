@@ -147,7 +147,7 @@ export class TextSummaryPlugin implements Plugin {
     try {
       const result = await this.initContext.storage.getItem(
         `plugin_config_${this.id}`,
-        this.config
+        this.config // @TOCHECK
       );
 
       if (result.success && result.data) {
