@@ -105,33 +105,71 @@ export class PluginManager {
   }
 
   /**
+   * 自动发现并加载插件 v1
+   * @DEPRECATED
+   */
+  // private async discoverAndLoadPlugins_v1(): Promise<void> {
+  //   const pluginModules = [
+  //     {
+  //       path: "../plugins/text-summary/01-text-summary.plugin",
+  //       name: "text-summary-plugin",
+  //     },
+  //     // 在这里添加更多插件...
+  //   ];
+
+  //   const loadPromises = pluginModules.map(async ({ path, name }) => {
+  //     try {
+  //       const module = await import(path);
+  //       const plugin = module.default || module[name];
+
+  //       if (plugin && this.isValidPlugin(plugin)) {
+  //         await this.loadPlugin(plugin);
+  //       } else {
+  //         console.warn(`⚠️ Invalid plugin structure in ${path}`);
+  //       }
+  //     } catch (error) {
+  //       console.error(`❌ Failed to load plugin from ${path}:`, error);
+  //     }
+  //   });
+
+  //   await Promise.all(loadPromises);
+  // }
+
+  /**
    * 自动发现并加载插件
+   * 注意：在 Service Worker 环境中不能使用动态 import()
+   * 所以这里改为手动注册插件
    */
   private async discoverAndLoadPlugins(): Promise<void> {
-    const pluginModules = [
-      {
-        path: "../plugins/text-summary/01-text-summary.plugin",
-        name: "text-summary-plugin",
-      },
-      // 在这里添加更多插件...
-    ];
+    console.log("📦 Loading plugins...");
 
-    const loadPromises = pluginModules.map(async ({ path, name }) => {
-      try {
-        const module = await import(path);
-        const plugin = module.default || module[name];
+    // 在 Service Worker 中不能使用动态 import，需要通过静态导入
+    // 插件会通过 registerPlugin 方法手动注册
+    // 或者在 background.ts 中直接导入插件文件
 
-        if (plugin && this.isValidPlugin(plugin)) {
-          await this.loadPlugin(plugin);
-        } else {
-          console.warn(`⚠️ Invalid plugin structure in ${path}`);
-        }
-      } catch (error) {
-        console.error(`❌ Failed to load plugin from ${path}:`, error);
+    console.log("✅ Plugin discovery completed");
+  }
+
+  /**
+   * 手动注册插件
+   * @param plugin 插件实例
+   */
+  async registerPlugin(plugin: any): Promise<void> {
+    try {
+      console.log(
+        `🔌 Registering plugin: ${plugin?.name || "unknown"} (${
+          plugin?.id || "unknown"
+        })`
+      );
+
+      if (this.isValidPlugin(plugin)) {
+        await this.loadPlugin(plugin);
+      } else {
+        console.warn(`⚠️ Invalid plugin structure`);
       }
-    });
-
-    await Promise.all(loadPromises);
+    } catch (error) {
+      console.error(`❌ Failed to register plugin:`, error);
+    }
   }
 
   /**

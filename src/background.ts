@@ -1,5 +1,7 @@
 import browser from "webextension-polyfill";
 import { PluginManager } from "./core/plugin-manager";
+// 静态导入插件
+import textSummaryPlugin from "./plugins/text-summary/01-text-summary.plugin";
 
 console.log("Hello from the background!");
 
@@ -10,41 +12,57 @@ const globalPluginManager = new PluginManager();
 async function initializeBackground() {
   try {
     console.log("🚀 Initializing background script...");
-    
+
     // 初始化插件管理器
     await globalPluginManager.initialize();
-    
+
+    // 手动注册插件
+    await globalPluginManager.registerPlugin(textSummaryPlugin);
+
     // 监听来自 content script 的功能执行请求
-    chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-      if (message.type === 'EXECUTE_FEATURE') {
-        try {
-          console.log(`📨 Received feature execution request: ${message.featureId}`);
-          const result = await globalPluginManager.executeFeature(
-            message.featureId,
-            message.implementation,
-            message.context
-          );
-          sendResponse(result);
-        } catch (error) {
-          console.error("❌ Feature execution failed:", error);
-          sendResponse({ success: false, error: String(error) });
+    chrome.runtime.onMessage.addListener(
+      async (message, sender, sendResponse) => {
+        const allPlugins = globalPluginManager.getAllPlugins();
+        const executedFeatures = globalPluginManager.executeFeature;
+        console.log("allPlugins", allPlugins);
+        console.log("executedFeatures", executedFeatures);
+
+        if (message.type === "EXECUTE_FEATURE") {
+          try {
+            console.log(
+              `📨 Received feature execution request: ${message.featureId}`
+            );
+            const result = await globalPluginManager.executeFeature(
+              message.featureId,
+              message.implementation,
+              message.context
+            );
+            console.log(
+              "📬 Feature execution result in background.ts:",
+              result
+            );
+            sendResponse(result);
+          } catch (error) {
+            console.error("❌ Feature execution failed:", error);
+            sendResponse({ success: false, error: String(error) });
+          }
+          return true; // 保持消息通道开放
         }
-        return true; // 保持消息通道开放
-      }
-      
-      if (message.type === 'GET_PLUGIN_STATUS') {
-        try {
-          const status = globalPluginManager.getPluginStatus();
-          sendResponse({ success: true, status });
-        } catch (error) {
-          sendResponse({ success: false, error: String(error) });
+
+        if (message.type === "GET_PLUGIN_STATUS") {
+          try {
+            const status = globalPluginManager.getPluginStatus();
+            sendResponse({ success: true, status });
+          } catch (error) {
+            sendResponse({ success: false, error: String(error) });
+          }
+          return true;
         }
-        return true;
+
+        return false; // 其他消息类型不处理
       }
-      
-      return false; // 其他消息类型不处理
-    });
-    
+    );
+
     console.log("✅ Background script initialized");
   } catch (error) {
     console.error("❌ Failed to initialize background script:", error);

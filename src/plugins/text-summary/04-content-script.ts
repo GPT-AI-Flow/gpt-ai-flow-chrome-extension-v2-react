@@ -166,6 +166,8 @@ class ContentScriptManager {
         );
       });
 
+      console.log("📨 Summary request result:", result);
+
       // UI 反馈
       if (result.success) {
         this.showSummaryResult(selectedText, result.actions?.[0] || "总结完成");
