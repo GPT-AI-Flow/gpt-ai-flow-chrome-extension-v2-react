@@ -20,14 +20,12 @@ async function initializeBackground() {
     await globalPluginManager.registerPlugin(textSummaryPlugin);
 
     // 监听来自 content script 的功能执行请求
-    chrome.runtime.onMessage.addListener(
-      async (message, sender, sendResponse) => {
-        const allPlugins = globalPluginManager.getAllPlugins();
-        const executedFeatures = globalPluginManager.executeFeature;
-        console.log("allPlugins", allPlugins);
-        console.log("executedFeatures", executedFeatures);
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log("📨 Background received message:", message.type);
 
-        if (message.type === "EXECUTE_FEATURE") {
+      if (message.type === "EXECUTE_FEATURE") {
+        // 处理异步功能执行
+        (async () => {
           try {
             console.log(
               `📨 Received feature execution request: ${message.featureId}`
@@ -46,22 +44,22 @@ async function initializeBackground() {
             console.error("❌ Feature execution failed:", error);
             sendResponse({ success: false, error: String(error) });
           }
-          return true; // 保持消息通道开放
-        }
-
-        if (message.type === "GET_PLUGIN_STATUS") {
-          try {
-            const status = globalPluginManager.getPluginStatus();
-            sendResponse({ success: true, status });
-          } catch (error) {
-            sendResponse({ success: false, error: String(error) });
-          }
-          return true;
-        }
-
-        return false; // 其他消息类型不处理
+        })();
+        return true; // 保持消息通道开放用于异步响应
       }
-    );
+
+      if (message.type === "GET_PLUGIN_STATUS") {
+        try {
+          const status = globalPluginManager.getPluginStatus();
+          sendResponse({ success: true, status });
+        } catch (error) {
+          sendResponse({ success: false, error: String(error) });
+        }
+        return true;
+      }
+
+      return false; // 其他消息类型不处理
+    });
 
     console.log("✅ Background script initialized");
   } catch (error) {

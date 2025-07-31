@@ -148,11 +148,12 @@ class ContentScriptManager {
       };
 
       // 通过消息传递请求 background script 执行功能
+      console.log("📤 Sending message to background script...");
       const result = await new Promise<{
         success: boolean;
         actions?: string[];
         error?: string;
-      }>((resolve) => {
+      }>((resolve, reject) => {
         chrome.runtime.sendMessage(
           {
             type: "EXECUTE_FEATURE",
@@ -161,6 +162,21 @@ class ContentScriptManager {
             context: context,
           },
           (response) => {
+            // 检查是否有 runtime error
+            if (chrome.runtime.lastError) {
+              console.error("❌ Runtime error:", chrome.runtime.lastError);
+              reject(new Error(chrome.runtime.lastError.message));
+              return;
+            }
+
+            // 检查响应是否为空
+            if (!response) {
+              console.error("❌ Empty response from background script");
+              reject(new Error("Empty response from background script"));
+              return;
+            }
+
+            console.log("📨 Received response from background:", response);
             resolve(response);
           }
         );
