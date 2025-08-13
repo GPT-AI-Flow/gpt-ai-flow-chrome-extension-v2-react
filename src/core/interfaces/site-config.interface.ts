@@ -14,7 +14,7 @@ export interface FeatureMapping {
   /** 功能特定设置 */
   settings?: Record<string, any>;
 
-  /** 优先级（数字越小优先级越高） */
+  /** 优先级（数字越大优先级越高） */
   priority?: number;
 }
 
@@ -54,7 +54,7 @@ export interface SiteConfig {
   /** 网站特定设置 */
   settings?: Record<string, any>;
 
-  /** 配置优先级（数字越小优先级越高） */
+  /** 配置优先级（数字越大优先级越高） */
   priority?: number;
 
   /** 是否启用该配置 */
@@ -71,35 +71,37 @@ export interface SiteConfig {
  * 站点配置管理器接口
  */
 export interface SiteConfigManager {
+  allSiteConfigs: SiteConfig[];
+
   /**
    * 根据 URL 获取匹配的网站配置
    * @param url 当前页面 URL
    * @returns 匹配的配置，如果没有匹配则返回默认配置
    */
-  getConfigForUrl(url: string): SiteConfig;
+  // getConfigForUrl(url: string): SiteConfig;
 
   /**
    * 添加新的网站配置
    * @param config 网站配置
    */
-  addSiteConfig(config: SiteConfig): void;
+  // addSiteConfig(config: SiteConfig): void;
 
   /**
    * 更新网站配置
    * @param id 配置 ID
    * @param config 更新的配置
    */
-  updateSiteConfig(id: string, config: Partial<SiteConfig>): void;
+  // updateSiteConfig(id: string, config: Partial<SiteConfig>): void;
 
   /**
    * 删除网站配置
    * @param id 配置 ID
    */
-  removeSiteConfig(id: string): void;
+  // removeSiteConfig(id: string): void;
 
   /**
    * 获取所有网站配置
    * @returns 所有配置列表
    */
-  getAllConfigs(): SiteConfig[];
+  getAllSiteConfigs(): SiteConfig[];
 }

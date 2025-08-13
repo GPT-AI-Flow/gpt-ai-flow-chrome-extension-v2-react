@@ -4,7 +4,7 @@
 export interface FeatureExecutionContext {
   /** 当前网站配置 */
   siteConfig: SiteConfig;
-  /** 功能特定设置 */
+  /** 功能特定设置 for Feature */
   settings: Record<string, any>;
   /** DOM 文档对象 */
   document: Document;
@@ -68,25 +68,25 @@ export interface Feature {
    * 配置功能（可选）
    * @param config 配置对象
    */
-  configure?(config: Record<string, any>): void;
+  // configure?(config: Record<string, any>): void;
 
   /**
    * 获取功能的默认配置（可选）
    * @returns 默认配置
    */
-  getDefaultConfig?(): Record<string, any>;
+  // getDefaultConfig?(): Record<string, any>;
 
   /**
    * 清理资源（可选）
    * 在功能被禁用或插件卸载时调用
    */
-  dispose?(): Promise<void>;
+  // dispose?(): Promise<void>;
 
   /**
    * 获取功能状态（可选）
    * @returns 当前状态信息
    */
-  getStatus?(): {
+  getFeatureStatus?(): {
     active: boolean;
     lastExecuted?: Date;
     executionCount?: number;

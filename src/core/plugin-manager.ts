@@ -9,11 +9,8 @@ import {
   FeatureExecutionResult,
 } from "./interfaces/feature.interface";
 import { SiteConfig } from "./interfaces/site-config.interface";
-import {
-  featureRegistry as defaultFeatureRegistry,
-  FeatureRegistry,
-} from "./feature-registry";
-import { StorageUtils } from "../utils/storage-utils";
+import { featureRegistry_default, FeatureRegistry } from "./feature-registry";
+import { LocalStorageUtils } from "../utils/storage-utils";
 
 /**
  * 插件执行结果
@@ -41,17 +38,17 @@ export class PluginManager {
   private featureRegistry: FeatureRegistry;
 
   /** 存储工具 */
-  private storage: StorageUtils;
+  private storage: LocalStorageUtils;
 
   /** 是否已初始化 */
-  private isInitialized = false;
+  private isInitialized: boolean = false;
 
   /** 初始化上下文 */
   private initContext: PluginInitializationContext;
 
   constructor(
-    featureRegistry: FeatureRegistry = defaultFeatureRegistry,
-    storage: StorageUtils = new StorageUtils()
+    featureRegistry: FeatureRegistry = featureRegistry_default,
+    storage: LocalStorageUtils = new LocalStorageUtils()
   ) {
     this.featureRegistry = featureRegistry;
     this.storage = storage;
@@ -79,7 +76,7 @@ export class PluginManager {
       await this.loadGlobalSettings();
 
       // 自动发现并加载插件
-      await this.discoverAndLoadPlugins();
+      // await this.discoverAndLoadPlugins();
 
       this.isInitialized = true;
       console.log("✅ PluginManager initialized successfully");
@@ -140,21 +137,21 @@ export class PluginManager {
    * 注意：在 Service Worker 环境中不能使用动态 import()
    * 所以这里改为手动注册插件
    */
-  private async discoverAndLoadPlugins(): Promise<void> {
-    console.log("📦 Loading plugins...");
+  // private async discoverAndLoadPlugins(): Promise<void> {
+  //   console.log("📦 Loading plugins...");
 
-    // 在 Service Worker 中不能使用动态 import，需要通过静态导入
-    // 插件会通过 registerPlugin 方法手动注册
-    // 或者在 background.ts 中直接导入插件文件
+  //   // 在 Service Worker 中不能使用动态 import，需要通过静态导入
+  //   // 插件会通过 registerPlugin 方法手动注册
+  //   // 或者在 background.ts 中直接导入插件文件
 
-    console.log("✅ Plugin discovery completed");
-  }
+  //   console.log("✅ Plugin discovery completed");
+  // }
 
   /**
    * 手动注册插件
    * @param plugin 插件实例
    */
-  async registerPlugin(plugin: any): Promise<void> {
+  async registerPlugin(plugin: Plugin): Promise<void> {
     try {
       console.log(
         `🔌 Registering plugin: ${plugin?.name || "unknown"} (${
@@ -174,6 +171,7 @@ export class PluginManager {
 
   /**
    * 验证插件结构
+   * 类型保护 Type Guards: 不知道一开始进入的 plugin 类型, 如果函数返回 True, 则判断 plugin 是 Plugin 类型
    */
   private isValidPlugin(plugin: any): plugin is Plugin {
     return (
@@ -284,9 +282,9 @@ export class PluginManager {
       this.unregisterPluginFeatures(pluginId);
 
       // 清理资源
-      if (plugin.dispose) {
-        await plugin.dispose();
-      }
+      // if (plugin.dispose) {
+      //   await plugin.dispose();
+      // }
 
       plugin.status = PluginStatus.UNLOADED;
       this.plugins.delete(pluginId);
@@ -304,84 +302,84 @@ export class PluginManager {
    * @param url 当前URL
    * @returns 执行结果
    */
-  async executeApplicableFeatures(
-    siteConfig: SiteConfig,
-    url: string
-  ): Promise<PluginExecutionResult[]> {
-    if (!this.isInitialized) {
-      throw new Error("PluginManager not initialized");
-    }
+  // async executeApplicableFeatures(
+  //   siteConfig: SiteConfig,
+  //   url: string
+  // ): Promise<PluginExecutionResult[]> {
+  //   if (!this.isInitialized) {
+  //     throw new Error("PluginManager not initialized");
+  //   }
 
-    console.log(`🎯 Executing features for: ${siteConfig.name} (${url})`);
+  //   console.log(`🎯 Executing features for: ${siteConfig.name} (${url})`);
 
-    const applicableFeatures = this.featureRegistry.getApplicableFeatures(
-      siteConfig,
-      url
-    );
-    console.log(`📋 Found ${applicableFeatures.length} applicable features`);
+  //   const applicableFeatures = this.featureRegistry.getApplicableFeatures(
+  //     siteConfig,
+  //     url
+  //   );
+  //   console.log(`📋 Found ${applicableFeatures.length} applicable features`);
 
-    const results: PluginExecutionResult[] = [];
-    const pluginResults = new Map<string, PluginExecutionResult>();
+  //   const results: PluginExecutionResult[] = [];
+  //   const pluginResults = new Map<string, PluginExecutionResult>();
 
-    // 按插件分组执行功能
-    for (const feature of applicableFeatures) {
-      const pluginId = this.getFeaturePluginId(feature);
+  //   // 按插件分组执行功能
+  //   for (const feature of applicableFeatures) {
+  //     const pluginId = this.getFeaturePluginId(feature);
 
-      if (!pluginResults.has(pluginId)) {
-        pluginResults.set(pluginId, {
-          pluginId,
-          success: true,
-          executedFeatures: [],
-          errors: [],
-        });
-      }
+  //     if (!pluginResults.has(pluginId)) {
+  //       pluginResults.set(pluginId, {
+  //         pluginId,
+  //         success: true,
+  //         executedFeatures: [],
+  //         errors: [],
+  //       });
+  //     }
 
-      const pluginResult = pluginResults.get(pluginId)!;
+  //     const pluginResult = pluginResults.get(pluginId)!;
 
-      try {
-        const context: FeatureExecutionContext = {
-          siteConfig,
-          settings: this.getFeatureSettings(siteConfig, feature.id),
-          document,
-          storage: this.storage,
-          url,
-        };
+  //     try {
+  //       const context: FeatureExecutionContext = {
+  //         siteConfig,
+  //         settings: this.getFeatureSettings(siteConfig, feature.id),
+  //         document,
+  //         storage: this.storage,
+  //         url,
+  //       };
 
-        console.log(`🔧 Executing feature: ${feature.name} (${feature.id})`);
-        const result = await feature.execute(context);
+  //       console.log(`🔧 Executing feature: ${feature.name} (${feature.id})`);
+  //       const result = await feature.execute(context);
 
-        pluginResult.executedFeatures.push({
-          featureId: feature.id,
-          implementation: this.getFeatureImplementationName(feature),
-          result,
-        });
+  //       pluginResult.executedFeatures.push({
+  //         featureId: feature.id,
+  //         implementation: this.getFeatureImplementationName(feature),
+  //         result,
+  //       });
 
-        if (!result.success) {
-          pluginResult.success = false;
-          pluginResult.errors.push(result.error || "Unknown error");
-        }
+  //       if (!result.success) {
+  //         pluginResult.success = false;
+  //         pluginResult.errors.push(result.error || "Unknown error");
+  //       }
 
-        console.log(
-          `${result.success ? "✅" : "❌"} Feature ${feature.name}: ${
-            result.success ? "success" : result.error
-          }`
-        );
-      } catch (error) {
-        const errorMessage = `Feature execution failed: ${error}`;
-        console.error(`❌ ${errorMessage}`);
+  //       console.log(
+  //         `${result.success ? "✅" : "❌"} Feature ${feature.name}: ${
+  //           result.success ? "success" : result.error
+  //         }`
+  //       );
+  //     } catch (error) {
+  //       const errorMessage = `Feature execution failed: ${error}`;
+  //       console.error(`❌ ${errorMessage}`);
 
-        pluginResult.success = false;
-        pluginResult.errors.push(errorMessage);
-        pluginResult.executedFeatures.push({
-          featureId: feature.id,
-          implementation: this.getFeatureImplementationName(feature),
-          result: { success: false, error: errorMessage },
-        });
-      }
-    }
+  //       pluginResult.success = false;
+  //       pluginResult.errors.push(errorMessage);
+  //       pluginResult.executedFeatures.push({
+  //         featureId: feature.id,
+  //         implementation: this.getFeatureImplementationName(feature),
+  //         result: { success: false, error: errorMessage },
+  //       });
+  //     }
+  //   }
 
-    return Array.from(pluginResults.values());
-  }
+  //   return Array.from(pluginResults.values());
+  // }
 
   /**
    * 执行特定功能
@@ -424,9 +422,9 @@ export class PluginManager {
    * @param pluginId 插件ID
    * @returns 插件实例
    */
-  getPlugin(pluginId: string): Plugin | undefined {
-    return this.plugins.get(pluginId);
-  }
+  // getPlugin(pluginId: string): Plugin | undefined {
+  //   return this.plugins.get(pluginId);
+  // }
 
   /**
    * 获取所有插件
@@ -440,7 +438,7 @@ export class PluginManager {
    * 获取插件状态
    * @returns 插件状态摘要
    */
-  getPluginStatus(): Array<{
+  getAllPluginStatus(): Array<{
     id: string;
     name: string;
     status: PluginStatus;
@@ -461,16 +459,16 @@ export class PluginManager {
    * @param feature 功能实例
    * @returns 插件ID
    */
-  private getFeaturePluginId(feature: Feature): string {
-    // 这里可以通过功能注册表获取更准确的插件ID
-    // 临时实现：从插件列表中查找
-    for (const [pluginId, plugin] of this.plugins.entries()) {
-      if (plugin.features.some((f) => f.id === feature.id)) {
-        return pluginId;
-      }
-    }
-    return "unknown";
-  }
+  // private getFeaturePluginId(feature: Feature): string {
+  //   // 这里可以通过功能注册表获取更准确的插件ID
+  //   // 临时实现：从插件列表中查找
+  //   for (const [pluginId, plugin] of this.plugins.entries()) {
+  //     if (plugin.features.some((f) => f.id === feature.id)) {
+  //       return pluginId;
+  //     }
+  //   }
+  //   return "unknown";
+  // }
 
   /**
    * 获取功能的设置
@@ -478,27 +476,27 @@ export class PluginManager {
    * @param featureId 功能ID
    * @returns 功能设置
    */
-  private getFeatureSettings(
-    siteConfig: SiteConfig,
-    featureId: string
-  ): Record<string, any> {
-    const mapping = siteConfig.enabledFeatures.find(
-      (m) => m.featureId === featureId
-    );
-    return mapping?.settings || {};
-  }
+  // private getFeatureSettings(
+  //   siteConfig: SiteConfig,
+  //   featureId: string
+  // ): Record<string, any> {
+  //   const mapping = siteConfig.enabledFeatures.find(
+  //     (m) => m.featureId === featureId
+  //   );
+  //   return mapping?.settings || {};
+  // }
 
   /**
    * 获取功能实现名称
    * @param feature 功能实例
    * @returns 实现名称
    */
-  private getFeatureImplementationName(feature: Feature): string {
-    if ("implementationName" in feature) {
-      return (feature as any).implementationName;
-    }
-    return "default";
-  }
+  // private getFeatureImplementationName(feature: Feature): string {
+  //   if ("implementationName" in feature) {
+  //     return (feature as any).implementationName;
+  //   }
+  //   return "default";
+  // }
 
   /**
    * 清理所有资源

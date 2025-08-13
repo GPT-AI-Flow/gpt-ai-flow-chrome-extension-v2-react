@@ -1,3 +1,4 @@
+import { LocalStorageUtils } from "../../utils/storage-utils";
 import { Feature } from "./feature.interface";
 
 /**
@@ -5,10 +6,10 @@ import { Feature } from "./feature.interface";
  */
 export interface PluginInitializationContext {
   /** 存储工具 */
-  storage: any;
+  storage: LocalStorageUtils;
   /** 消息传递 */
   messaging: any;
-  /** 全局设置 */
+  /** 全局设置 for plugin */
   settings: Record<string, any>;
   /** 插件管理器引用 */
   pluginManager: any;
@@ -24,6 +25,14 @@ export enum PluginStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
   ERROR = "error",
+}
+
+export interface PluginStatusInfo {
+  status: PluginStatus;
+  loadTime?: Date;
+  lastError?: string;
+  featuresCount: number;
+  activeFeatures: number;
 }
 
 /**
@@ -62,7 +71,7 @@ export interface Plugin {
   readonly homepage?: string;
 
   /** 插件依赖 */
-  readonly dependencies?: string[];
+  // readonly dependencies?: string[];
 
   /** 插件提供的功能列表 */
   readonly features: Feature[];
@@ -93,29 +102,23 @@ export interface Plugin {
    * 卸载插件，清理所有资源
    * @returns 卸载结果
    */
-  dispose?(): Promise<void>;
+  // dispose?(): Promise<void>;
 
   /**
    * 获取插件配置
    * @returns 当前配置
    */
-  getConfig?(): PluginConfig;
+  // getConfig?(): PluginConfig;
 
   /**
    * 设置插件配置
    * @param config 新配置
    */
-  setConfig?(config: Partial<PluginConfig>): Promise<void>;
+  // setConfig?(config: Partial<PluginConfig>): Promise<void>;
 
   /**
    * 获取插件状态信息
    * @returns 状态信息
    */
-  getStatusInfo?(): {
-    status: PluginStatus;
-    loadTime?: Date;
-    lastError?: string;
-    featuresCount: number;
-    activeFeatures: number;
-  };
+  getStatusInfo?(): PluginStatusInfo;
 }

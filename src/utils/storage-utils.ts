@@ -10,7 +10,7 @@ export interface StorageResult<T = any> {
 /**
  * 存储工具类，提供类型安全的存储操作
  */
-export class StorageUtils {
+export class LocalStorageUtils {
   /**
    * 存储数据到本地存储
    * @param key 存储键
@@ -118,4 +118,4 @@ export class StorageUtils {
 }
 
 // 导出单例实例，保持向后兼容
-export const storageUtils = new StorageUtils();
+export const storageUtils = new LocalStorageUtils();

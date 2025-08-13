@@ -186,7 +186,7 @@ export class FeatureRegistry {
 
         // 按活跃状态过滤
         if (options.activeOnly) {
-          const status = feature.getStatus?.();
+          const status = feature.getFeatureStatus?.();
           if (!status?.active) {
             continue;
           }
@@ -383,7 +383,7 @@ export class FeatureRegistry {
 }
 
 // 导出单例实例
-export const featureRegistry = new FeatureRegistry();
+export const featureRegistry_default = new FeatureRegistry();
 
 /**
  * 便捷的功能注册函数
@@ -396,5 +396,5 @@ export function registerFeature(
   pluginId?: string,
   isDefault?: boolean
 ): void {
-  featureRegistry.registerFeature(feature, pluginId, isDefault);
+  featureRegistry_default.registerFeature(feature, pluginId, isDefault);
 }
