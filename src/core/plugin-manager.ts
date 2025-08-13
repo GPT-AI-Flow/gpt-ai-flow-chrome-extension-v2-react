@@ -9,22 +9,22 @@ import {
   FeatureExecutionResult,
 } from "./interfaces/feature.interface";
 import { SiteConfig } from "./interfaces/site-config.interface";
-import { featureRegistry_default, FeatureRegistry } from "./feature-registry";
+import { FeatureRegistry, getGlobalFeatureRegistry } from "./feature-registry";
 import { LocalStorageUtils } from "../utils/storage-utils";
 
 /**
  * 插件执行结果
  */
-interface PluginExecutionResult {
-  pluginId: string;
-  success: boolean;
-  executedFeatures: Array<{
-    featureId: string;
-    implementation: string;
-    result: FeatureExecutionResult;
-  }>;
-  errors: string[];
-}
+// interface PluginExecutionResult {
+//   pluginId: string;
+//   success: boolean;
+//   executedFeatures: Array<{
+//     featureId: string;
+//     implementation: string;
+//     result: FeatureExecutionResult;
+//   }>;
+//   errors: string[];
+// }
 
 /**
  * 插件管理器
@@ -47,7 +47,7 @@ export class PluginManager {
   private initContext: PluginInitializationContext;
 
   constructor(
-    featureRegistry: FeatureRegistry = featureRegistry_default,
+    featureRegistry: FeatureRegistry = getGlobalFeatureRegistry(),
     storage: LocalStorageUtils = new LocalStorageUtils()
   ) {
     this.featureRegistry = featureRegistry;
@@ -516,3 +516,13 @@ export class PluginManager {
     console.log("✅ PluginManager disposed");
   }
 }
+
+// 全局插件管理器: 导出单例实例
+let defaultGlobalPluginManager: PluginManager | undefined;
+
+export const getGlobalPluginManager = (): PluginManager => {
+  if (!defaultGlobalPluginManager) {
+    defaultGlobalPluginManager = new PluginManager();
+  }
+  return defaultGlobalPluginManager;
+};

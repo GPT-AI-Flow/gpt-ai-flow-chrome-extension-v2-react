@@ -1,12 +1,11 @@
 import browser from "webextension-polyfill";
-import { PluginManager } from "./core/plugin-manager";
+import { getGlobalPluginManager } from "./core/plugin-manager";
 // 静态导入插件
 import textSummaryPlugin from "./plugins/text-summary/01-text-summary.plugin";
 
 console.log("Hello from the background!");
 
-// 全局插件管理器
-const globalPluginManager = new PluginManager();
+const defaultGlobalPluginManager = getGlobalPluginManager();
 
 // 初始化背景脚本
 async function initializeBackground() {
@@ -14,10 +13,10 @@ async function initializeBackground() {
     console.log("🚀 Initializing background script...");
 
     // 初始化插件管理器
-    await globalPluginManager.initialize();
+    await defaultGlobalPluginManager.initialize();
 
     // 手动注册插件
-    await globalPluginManager.registerPlugin(textSummaryPlugin);
+    await defaultGlobalPluginManager.registerPlugin(textSummaryPlugin);
 
     // 监听来自 content script 的功能执行请求
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -30,7 +29,7 @@ async function initializeBackground() {
             console.log(
               `📨 Received feature execution request: ${message.featureId}`
             );
-            const result = await globalPluginManager.executeFeature(
+            const result = await defaultGlobalPluginManager.executeFeature(
               message.featureId,
               message.implementation,
               message.context
@@ -50,7 +49,7 @@ async function initializeBackground() {
 
       if (message.type === "GET_PLUGIN_STATUS") {
         try {
-          const status = globalPluginManager.getPluginStatus();
+          const status = defaultGlobalPluginManager.getAllPluginStatus();
           sendResponse({ success: true, status });
         } catch (error) {
           sendResponse({ success: false, error: String(error) });

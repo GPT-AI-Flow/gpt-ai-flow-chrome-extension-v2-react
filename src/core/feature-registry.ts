@@ -382,8 +382,15 @@ export class FeatureRegistry {
   }
 }
 
-// 导出单例实例
-export const featureRegistry_default = new FeatureRegistry();
+// 全局插件 features 管理器: 导出单例实例
+let globalFeatureRegistry: FeatureRegistry | undefined;
+
+export const getGlobalFeatureRegistry = (): FeatureRegistry => {
+  if (!globalFeatureRegistry) {
+    globalFeatureRegistry = new FeatureRegistry();
+  }
+  return globalFeatureRegistry;
+};
 
 /**
  * 便捷的功能注册函数
@@ -396,5 +403,6 @@ export function registerFeature(
   pluginId?: string,
   isDefault?: boolean
 ): void {
-  featureRegistry_default.registerFeature(feature, pluginId, isDefault);
+  const globalFeatureRegistry = getGlobalFeatureRegistry();
+  globalFeatureRegistry.registerFeature(feature, pluginId, isDefault);
 }
